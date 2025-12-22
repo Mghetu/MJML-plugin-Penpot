@@ -1,4 +1,4 @@
-const UI_URL = "https://<user>.github.io/<repo>/index.html";
+const UI_URL = "https://mghetu.github.io/MJML-plugin-Penpot/public/index.html";
 
 const NL_TYPE_KEY = "nl:type";
 const NL_PROPS_KEY = "nl:props";

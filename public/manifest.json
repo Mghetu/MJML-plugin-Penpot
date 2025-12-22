@@ -2,6 +2,6 @@
   "name": "Newsletterify",
   "version": "0.1.0",
   "description": "Penpot plugin to export MJML newsletters.",
-  "code": "https://mghetu.github.io/MJML-plugin-Penpot/plugin.js",
+  "code": "https://mghetu.github.io/MJML-plugin-Penpot/public/plugin.js",
   "permissions": ["content:read", "content:write", "downloads"]
 }

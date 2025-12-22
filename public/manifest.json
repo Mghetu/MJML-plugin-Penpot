@@ -1,0 +1,7 @@
+{
+  "name": "Newsletterify",
+  "version": "0.1.0",
+  "description": "Penpot plugin to export MJML newsletters.",
+  "code": "https://<user>.github.io/<repo>/plugin.js",
+  "permissions": ["content:read", "content:write", "downloads"]
+}

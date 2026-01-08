@@ -5,7 +5,11 @@ const NL_PROPS_KEY = "nl:props";
 const NL_VERSION_KEY = "nl:version";
 const NL_VERSION = "0.1";
 
-penpot.ui.open("Newsletterify", UI_URL, { width: 360, height: 640 });
+penpot.ui.open("Newsletterify", UI_URL, {
+  width: 360,
+  height: 640,
+  allowDownloads: true,
+});
 
 const sendInfo = (message) => {
   penpot.ui.sendMessage({ type: "INFO", payload: { message } });
@@ -25,7 +29,10 @@ const downloadFile = ({ name, bytes, mimeType }) => {
     penpot.download({ name, data, mimeType });
     return;
   }
-  throw new Error("Download API not available.");
+  penpot.ui.sendMessage({
+    type: "DOWNLOAD_FALLBACK",
+    payload: { name, bytes, mimeType },
+  });
 };
 
 const setNl = (shape, type, props = {}) => {

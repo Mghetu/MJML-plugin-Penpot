@@ -136,15 +136,12 @@ const triggerZipDownload = async (payload) => {
     });
   }
 
-  const blob = await zip.generateAsync({ type: "blob" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "newsletterify-export.zip";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  const bytes = await zip.generateAsync({ type: "uint8array" });
+  sendMessage("DOWNLOAD_FILE", {
+    name: "newsletterify-export.zip",
+    bytes: Array.from(bytes),
+    mimeType: "application/zip",
+  });
 
   if (warnings.length > 0) {
     appendStatus("warning", `Exported with ${warnings.length} warnings.`);

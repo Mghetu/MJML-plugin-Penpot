@@ -15,6 +15,19 @@ const sendError = (message) => {
   penpot.ui.sendMessage({ type: "ERROR", payload: { message } });
 };
 
+const downloadFile = ({ name, bytes, mimeType }) => {
+  const data = new Uint8Array(bytes || []);
+  if (penpot.ui && typeof penpot.ui.download === "function") {
+    penpot.ui.download({ name, data, mimeType });
+    return;
+  }
+  if (typeof penpot.download === "function") {
+    penpot.download({ name, data, mimeType });
+    return;
+  }
+  throw new Error("Download API not available.");
+};
+
 const setNl = (shape, type, props = {}) => {
   shape.setPluginData(NL_TYPE_KEY, type);
   shape.setPluginData(NL_PROPS_KEY, JSON.stringify(props));
@@ -439,6 +452,9 @@ penpot.ui.onMessage(async (message) => {
         break;
       case "EXPORT_MJML":
         await exportMjml();
+        break;
+      case "DOWNLOAD_FILE":
+        downloadFile(message.payload || {});
         break;
       default:
         break;

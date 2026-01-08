@@ -46,13 +46,65 @@ const requireSelection = () => {
   return selection[0];
 };
 
+const createGroupIn = (parent, name) => {
+  const a = penpot.createRectangle();
+  const b = penpot.createRectangle();
+
+  a.resize(10, 10);
+  b.resize(10, 10);
+  a.hidden = true;
+  b.hidden = true;
+
+  parent.appendChild(a);
+  parent.appendChild(b);
+
+  const group = penpot.group([a, b]);
+  if (!group) {
+    throw new Error("penpot.group() failed");
+  }
+
+  group.name = name;
+
+  try {
+    a.remove();
+  } catch {}
+  try {
+    b.remove();
+  } catch {}
+
+  return group;
+};
+
+const findAncestorContainer = (node) => {
+  let cur = node;
+  while (cur) {
+    if (cur.getPluginData(NL_TYPE_KEY) === "container") {
+      return cur;
+    }
+    cur = cur.parent;
+  }
+  return null;
+};
+
+const getContainerFromSelectionOrThrow = () => {
+  const selection = getSelection();
+  if (!selection.length) {
+    throw new Error("Select the container or something inside it.");
+  }
+  const container = findAncestorContainer(selection[0]);
+  if (!container) {
+    throw new Error("Selection is not inside a Newsletter Container.");
+  }
+  return container;
+};
+
 const createContainer = () => {
   const board = penpot.createBoard();
   board.name = "Newsletter Container";
   board.resize(600, 900);
   board.x = 0;
   board.y = 0;
-  board.fills = [{ fillType: "solid", color: "#ffffff" }];
+  board.fills = [{ fillColor: "#ffffff" }];
   setNl(board, "container", {
     width: 600,
     backgroundColor: "#ffffff",
@@ -62,21 +114,16 @@ const createContainer = () => {
   sendInfo("Container inserted.");
 };
 
-const createSection = () => {
-  const parent = requireSelection();
-  if (!parent) {
-    return;
-  }
-  if (getNlType(parent) !== "container") {
-    sendError("Select a Container to insert a Row/Section.");
-    return;
-  }
-  const group = penpot.createGroup();
-  group.name = "Section";
-  parent.appendChild(group);
-  setNl(group, "section", { padding: "0px", backgroundColor: null });
-  penpot.selection = [group];
-  sendInfo("Section inserted.");
+const createSection = (container, props = { padding: "0px" }) => {
+  const group = createGroupIn(container, "Section");
+  const background = penpot.createRectangle();
+  const sectionWidth = container?.width || 600;
+  background.name = "Section Background";
+  background.resize(sectionWidth, 40);
+  background.fills = [{ fillColor: "#f5f5f5" }];
+  group.appendChild(background);
+  setNl(group, "section", { padding: "0px", backgroundColor: null, ...props });
+  return group;
 };
 
 const createColumn = () => {
@@ -88,9 +135,7 @@ const createColumn = () => {
     sendError("Select a Section to insert a Column.");
     return;
   }
-  const group = penpot.createGroup();
-  group.name = "Column";
-  parent.appendChild(group);
+  const group = createGroupIn(parent, "Column");
   setNl(group, "column", { width: null });
   penpot.selection = [group];
   sendInfo("Column inserted.");
@@ -126,9 +171,7 @@ const insertButton = () => {
   if (!parent) {
     return;
   }
-  const group = penpot.createGroup();
-  group.name = "Button";
-  parent.appendChild(group);
+  const group = createGroupIn(parent, "Button");
   setNl(group, "button", {
     href: "https://example.com",
     align: "left",
@@ -140,14 +183,14 @@ const insertButton = () => {
 
   const rect = penpot.createRectangle();
   rect.resize(160, 40);
-  rect.fills = [{ fillType: "solid", color: "#4c6fff" }];
+  rect.fills = [{ fillColor: "#4c6fff" }];
   rect.name = "Button Background";
 
   const label = penpot.createText("Button");
   label.name = "Button Label";
   label.x = 16;
   label.y = 10;
-  label.fills = [{ fillType: "solid", color: "#ffffff" }];
+  label.fills = [{ fillColor: "#ffffff" }];
 
   group.appendChild(rect);
   group.appendChild(label);
@@ -164,7 +207,7 @@ const insertImage = () => {
   const rect = penpot.createRectangle();
   rect.name = "Image";
   rect.resize(300, 180);
-  rect.fills = [{ fillType: "solid", color: "#e0e0e0" }];
+  rect.fills = [{ fillColor: "#e0e0e0" }];
   parent.appendChild(rect);
   setNl(rect, "image", { alt: "Image", href: null, padding: "0px" });
   penpot.selection = [rect];
@@ -179,7 +222,7 @@ const insertDivider = () => {
   const rect = penpot.createRectangle();
   rect.name = "Divider";
   rect.resize(300, 1);
-  rect.fills = [{ fillType: "solid", color: "#dddddd" }];
+  rect.fills = [{ fillColor: "#dddddd" }];
   parent.appendChild(rect);
   setNl(rect, "divider", {
     borderWidth: "1px",
@@ -348,46 +391,54 @@ const exportMjml = async () => {
   });
 };
 
-penpot.ui.onMessage((message) => {
-  if (!message || typeof message.type !== "string") {
-    return;
-  }
+penpot.ui.onMessage(async (message) => {
+  try {
+    if (!message || typeof message.type !== "string") {
+      return;
+    }
 
-  switch (message.type) {
-    case "PING":
-      penpot.ui.sendMessage({ type: "PONG" });
-      break;
-    case "INSERT_CONTAINER":
-      createContainer();
-      break;
-    case "INSERT_ROW":
-      createSection();
-      break;
-    case "INSERT_COLUMN":
-      createColumn();
-      break;
-    case "INSERT_TEXT":
-      insertText();
-      break;
-    case "INSERT_BUTTON":
-      insertButton();
-      break;
-    case "INSERT_IMAGE":
-      insertImage();
-      break;
-    case "INSERT_DIVIDER":
-      insertDivider();
-      break;
-    case "INSERT_SPACER":
-      insertSpacer();
-      break;
-    case "TAG_SELECTION":
-      tagSelection(message.payload);
-      break;
-    case "EXPORT_MJML":
-      exportMjml();
-      break;
-    default:
-      break;
+    switch (message.type) {
+      case "PING":
+        penpot.ui.sendMessage({ type: "PONG" });
+        break;
+      case "INSERT_CONTAINER":
+        createContainer();
+        break;
+      case "INSERT_ROW": {
+        const container = getContainerFromSelectionOrThrow();
+        const section = createSection(container, { padding: "0px" });
+        penpot.selection = [section];
+        sendInfo("Row inserted.");
+        break;
+      }
+      case "INSERT_COLUMN":
+        createColumn();
+        break;
+      case "INSERT_TEXT":
+        insertText();
+        break;
+      case "INSERT_BUTTON":
+        insertButton();
+        break;
+      case "INSERT_IMAGE":
+        insertImage();
+        break;
+      case "INSERT_DIVIDER":
+        insertDivider();
+        break;
+      case "INSERT_SPACER":
+        insertSpacer();
+        break;
+      case "TAG_SELECTION":
+        tagSelection(message.payload);
+        break;
+      case "EXPORT_MJML":
+        await exportMjml();
+        break;
+      default:
+        break;
+    }
+  } catch (error) {
+    sendError(String(error?.message || error));
   }
 });

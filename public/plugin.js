@@ -116,6 +116,12 @@ const createContainer = () => {
 
 const createSection = (container, props = { padding: "0px" }) => {
   const group = createGroupIn(container, "Section");
+  const background = penpot.createRectangle();
+  const sectionWidth = container?.width || 600;
+  background.name = "Section Background";
+  background.resize(sectionWidth, 40);
+  background.fills = [{ fillColor: "#f5f5f5" }];
+  group.appendChild(background);
   setNl(group, "section", { padding: "0px", backgroundColor: null, ...props });
   return group;
 };

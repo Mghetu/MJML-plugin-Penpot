@@ -9,6 +9,7 @@ penpot.ui.open("Newsletterify", UI_URL, {
   width: 360,
   height: 640,
   allowDownloads: true,
+  allowDownload: true,
 });
 
 const sendInfo = (message) => {

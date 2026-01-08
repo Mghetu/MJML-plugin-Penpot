@@ -136,6 +136,11 @@ const createColumn = () => {
     return;
   }
   const group = createGroupIn(parent, "Column");
+  const background = penpot.createRectangle();
+  background.name = "Column Background";
+  background.resize(240, 40);
+  background.fills = [{ fillColor: "#f0f0f0" }];
+  group.appendChild(background);
   setNl(group, "column", { width: null });
   penpot.selection = [group];
   sendInfo("Column inserted.");

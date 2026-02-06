@@ -22,12 +22,12 @@ const sendError = (message) => {
 
 const downloadFile = ({ name, bytes, mimeType }) => {
   const data = new Uint8Array(bytes || []);
-  if (penpot.ui && typeof penpot.ui.download === "function") {
-    penpot.ui.download({ name, data, mimeType });
-    return;
-  }
   if (typeof penpot.download === "function") {
     penpot.download({ name, data, mimeType });
+    return;
+  }
+  if (penpot.ui && typeof penpot.ui.download === "function") {
+    penpot.ui.download({ name, data, mimeType });
     return;
   }
   penpot.ui.sendMessage({

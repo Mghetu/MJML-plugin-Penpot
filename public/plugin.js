@@ -22,18 +22,17 @@ const sendError = (message) => {
 
 const downloadFile = ({ name, bytes, mimeType }) => {
   const data = new Uint8Array(bytes || []);
-  if (penpot.ui && typeof penpot.ui.download === "function") {
-    penpot.ui.download({ name, data, mimeType });
-    return;
-  }
   if (typeof penpot.download === "function") {
     penpot.download({ name, data, mimeType });
     return;
   }
-  penpot.ui.sendMessage({
-    type: "DOWNLOAD_FALLBACK",
-    payload: { name, bytes, mimeType },
-  });
+  if (penpot.ui && typeof penpot.ui.download === "function") {
+    penpot.ui.download({ name, data, mimeType });
+    return;
+  }
+  sendError(
+    "Penpot download APIs are unavailable. Update Penpot or enable downloads permissions."
+  );
 };
 
 const setNl = (shape, type, props = {}) => {

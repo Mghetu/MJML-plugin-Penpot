@@ -30,9 +30,10 @@ const downloadFile = ({ name, bytes, mimeType }) => {
     penpot.ui.download({ name, data, mimeType });
     return;
   }
-  sendError(
-    "Penpot download APIs are unavailable. Update Penpot or enable downloads permissions."
-  );
+  penpot.ui.sendMessage({
+    type: "DOWNLOAD_FALLBACK",
+    payload: { name, bytes, mimeType },
+  });
 };
 
 const setNl = (shape, type, props = {}) => {

@@ -137,7 +137,7 @@ const triggerZipDownload = async (payload) => {
   }
 
   const bytes = await zip.generateAsync({ type: "uint8array" });
-  sendMessage("DOWNLOAD_FILE", {
+  downloadFallback({
     name: "newsletterify-export.zip",
     bytes: Array.from(bytes),
     mimeType: "application/zip",
@@ -217,9 +217,6 @@ window.addEventListener("message", (event) => {
       break;
     case "EXPORT_RESULT":
       triggerZipDownload(message.payload);
-      break;
-    case "DOWNLOAD_FALLBACK":
-      downloadFallback(message.payload);
       break;
     default:
       break;

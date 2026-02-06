@@ -121,6 +121,21 @@ const nodeToMjml = (node) => {
   }
 };
 
+const downloadFallback = (payload) => {
+  const { name, bytes, mimeType } = payload || {};
+  const blob = new Blob([new Uint8Array(bytes || [])], {
+    type: mimeType || "application/octet-stream",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name || "newsletterify-export.zip";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
 const triggerZipDownload = async (payload) => {
   const { ast, assets = [], warnings = [] } = payload;
   const mjml = nodeToMjml(ast);
@@ -137,7 +152,7 @@ const triggerZipDownload = async (payload) => {
   }
 
   const bytes = await zip.generateAsync({ type: "uint8array" });
-  sendMessage("DOWNLOAD_FILE", {
+  downloadFallback({
     name: "newsletterify-export.zip",
     bytes: Array.from(bytes),
     mimeType: "application/zip",
@@ -148,21 +163,6 @@ const triggerZipDownload = async (payload) => {
   } else {
     appendStatus("info", "Export complete.");
   }
-};
-
-const downloadFallback = (payload) => {
-  const { name, bytes, mimeType } = payload || {};
-  const blob = new Blob([new Uint8Array(bytes || [])], {
-    type: mimeType || "application/octet-stream",
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = name || "newsletterify-export.zip";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
 };
 
 const buttonMap = [
@@ -217,9 +217,6 @@ window.addEventListener("message", (event) => {
       break;
     case "EXPORT_RESULT":
       triggerZipDownload(message.payload);
-      break;
-    case "DOWNLOAD_FALLBACK":
-      downloadFallback(message.payload);
       break;
     default:
       break;
